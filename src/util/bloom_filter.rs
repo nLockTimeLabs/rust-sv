@@ -45,7 +45,7 @@ impl BloomFilter {
         let size = size.ceil() as usize;
         let num_hash_funcs = num_hash_funcs.ceil() as usize;
         let tweak = random();
-        debug!(
+        println!(
             "Creating bloom filter of size: {}, n_hash funcs: {}, tweak: {}",
             size, num_hash_funcs, tweak
         );

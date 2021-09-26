@@ -5,11 +5,12 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::io;
 use std::io::{Read, Write};
+use serde::{Serialize, Deserialize};
 
 /// 256-bit hash for blocks and transactions
 ///
 /// It is interpreted as a single little-endian number for display.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Hash256(pub [u8; 32]);
 
 impl Hash256 {

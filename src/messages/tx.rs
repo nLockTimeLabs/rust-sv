@@ -148,6 +148,21 @@ impl Tx {
             && self.inputs[0].prev_output.hash == COINBASE_OUTPOINT_HASH
             && self.inputs[0].prev_output.index == COINBASE_OUTPOINT_INDEX;
     }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut writer = Vec::new();
+        writer.write_u32::<LittleEndian>(self.version);
+        var_int::write(self.inputs.len() as u64, &mut writer).unwrap();
+        for tx_in in self.inputs.iter() {
+            tx_in.write(&mut writer);
+        }
+        var_int::write(self.outputs.len() as u64, &mut writer).unwrap();
+        for tx_out in self.outputs.iter() {
+            tx_out.write(&mut writer);
+        }
+        writer.write_u32::<LittleEndian>(self.lock_time).unwrap();
+        return writer
+    }
 }
 
 impl Serializable<Tx> for Tx {

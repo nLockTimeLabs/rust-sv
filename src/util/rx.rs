@@ -57,8 +57,12 @@ impl<T> Observer<T> for Subject<T> {
         {
             for observer in self.observers.read().unwrap().iter() {
                 match observer.upgrade() {
-                    Some(observer) => observer.next(event),
-                    None => any_to_remove = true,
+                    Some(observer) => {
+                        observer.next(event)
+                    },
+                    None => {
+                        any_to_remove = true
+                    },
                 }
             }
         }

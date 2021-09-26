@@ -24,15 +24,17 @@ use std::fmt;
 mod checker;
 mod interpreter;
 #[allow(dead_code)]
+
 pub mod op_codes;
 mod stack;
+use serde::{Serialize, Deserialize};
 
 pub use self::checker::{Checker, TransactionChecker, TransactionlessChecker};
 pub(crate) use self::interpreter::next_op;
 pub use self::interpreter::{NO_FLAGS, PREGENESIS_RULES};
 
 /// Transaction script
-#[derive(Default, Clone, PartialEq, Eq, Hash)]
+#[derive(Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Script(pub Vec<u8>);
 
 impl Script {

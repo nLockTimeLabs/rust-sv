@@ -2,6 +2,7 @@ use crate::util::{Hash256, Result, Serializable};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::io;
 use std::io::{Read, Write};
+use serde::{Serialize, Deserialize};
 
 /// The coinbase transaction input will have this hash
 pub const COINBASE_OUTPOINT_HASH: Hash256 = Hash256([0; 32]);
@@ -9,7 +10,7 @@ pub const COINBASE_OUTPOINT_HASH: Hash256 = Hash256([0; 32]);
 pub const COINBASE_OUTPOINT_INDEX: u32 = 0xffffffff;
 
 /// Reference to a transaction output
-#[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub struct OutPoint {
     /// Hash of the referenced transaction
     pub hash: Hash256,

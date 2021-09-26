@@ -3,11 +3,11 @@ use hex;
 use ring::digest::{digest, SHA256};
 use ripemd160::{Digest, Ripemd160};
 use std::fmt;
+use serde::{Serialize, Deserialize, Deserializer};
 
 /// 160-bit hash for public key addresses
-#[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Hash160(pub [u8; 20]);
-
 /// Hashes a data array once with SHA256 and again with RIPEMD160
 pub fn hash160(data: &[u8]) -> Hash160 {
     let sha256 = digest(&SHA256, data);
