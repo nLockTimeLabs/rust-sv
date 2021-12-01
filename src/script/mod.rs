@@ -32,6 +32,7 @@ use serde::{Serialize, Deserialize};
 pub use self::checker::{Checker, TransactionChecker, TransactionlessChecker};
 pub(crate) use self::interpreter::next_op;
 pub use self::interpreter::{NO_FLAGS, PREGENESIS_RULES};
+use crate::script::ScriptElement::Opcode;
 
 /// Transaction script
 #[derive(Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -95,6 +96,87 @@ impl Script {
     /// Evaluates a script using the provided checker
     pub fn eval<T: Checker>(&self, checker: &mut T, flags: u32) -> Result<()> {
         self::interpreter::eval(&self.0, checker, flags)
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum ScriptElement {
+    Opcode(u8),
+    Frame(Vec<u8>)
+}
+
+impl Iterator for Script {
+    type Item = ScriptElement;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0.is_empty() {
+            return None;
+        }
+
+        return match self.0.remove(0) {
+            x @ 0..=75 => {
+                if self.0.len() < (x as usize) {
+                    return None;
+                }
+
+                let frame = self.0.drain(0..(x as usize))
+                    .collect::<Vec<u8>>();
+                Some(ScriptElement::Frame(frame))
+            },
+            76 => {
+                if self.0.len() < 1 {
+                    return None;
+                }
+
+                let len = self.0.remove(0) as usize;
+                let frame = self.0.drain(0..len)
+                    .collect::<Vec<u8>>();
+
+                Some(ScriptElement::Frame(frame))
+            }
+            77 => {
+                if self.0.len() < 2 {
+                    return None;
+                }
+                let frame_len = u16::from_le_bytes([
+                    self.0.remove(0),
+                    self.0.remove(0)
+                ]) as usize;
+
+                if self.0.len() < frame_len {
+                    return None;
+                }
+
+                let frame = self.0.drain(0..frame_len)
+                    .collect::<Vec<u8>>();
+
+                Some(ScriptElement::Frame(frame))
+            }
+            78 => {
+                if self.0.len() < 4 {
+                    return None;
+                }
+                let frame_len = u32::from_le_bytes([
+                    self.0.remove(0),
+                    self.0.remove(0),
+                    self.0.remove(0),
+                    self.0.remove(0)
+                ]) as usize;
+
+                if self.0.len() < frame_len {
+                    return None;
+                }
+
+                let frame = self.0.drain(0..frame_len)
+                    .collect::<Vec<u8>>();
+
+                Some(ScriptElement::Frame(frame))
+            }
+            x => {
+                Some(ScriptElement::Opcode(x))
+            }
+        }
+
     }
 }
 
@@ -305,5 +387,31 @@ mod tests {
         s.append_data(&vec![0; 65536]);
         assert!(s.0[0] == OP_PUSHDATA4 && s.0[1] == 0 && s.0[2] == 0 && s.0[3] == 1);
         assert!(s.0.len() == 65541);
+    }
+
+    #[test]
+    fn frame_iterator() {
+
+        let mut s = Script::new();
+        s.append(OP_RETURN);
+        s.append(OP_0);
+        s.append_data(&vec![0; 1]);
+        s.append_data(&vec![0; 76]);
+        s.append(OP_RETURN);
+        s.append_data(&vec![0; 256]);
+        s.append(OP_ADD);
+        s.append_data(&vec![0; 65536]);
+        s.append(OP_RETURN);
+
+        assert_eq!(s.next(), Some(ScriptElement::Opcode(OP_RETURN)));
+        assert_eq!(s.next(), Some(ScriptElement::Frame(vec![])));
+        assert_eq!(s.next(), Some(ScriptElement::Frame(vec![0;1])));
+        assert_eq!(s.next(), Some(ScriptElement::Frame(vec![0;76])));
+        assert_eq!(s.next(), Some(ScriptElement::Opcode(OP_RETURN)));
+        assert_eq!(s.next(), Some(ScriptElement::Frame(vec![0;256])));
+        assert_eq!(s.next(), Some(ScriptElement::Opcode(OP_ADD)));
+        assert_eq!(s.next(), Some(ScriptElement::Frame(vec![0;65536])));
+        assert_eq!(s.next(), Some(ScriptElement::Opcode(OP_RETURN)));
+        assert_eq!(s.next(), None);
     }
 }
