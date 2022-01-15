@@ -165,7 +165,7 @@ impl Tx {
     }
 
     pub fn to_hex(&self) -> String {
-        return self.to_bytes())
+        return hex::encode(self.to_bytes());
     }
 }
 
