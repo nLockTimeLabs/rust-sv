@@ -163,6 +163,10 @@ impl Tx {
         writer.write_u32::<LittleEndian>(self.lock_time).unwrap();
         return writer
     }
+
+    pub fn to_hex(&self) -> String {
+        return self.to_bytes())
+    }
 }
 
 impl Serializable<Tx> for Tx {
