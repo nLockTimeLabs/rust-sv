@@ -14,7 +14,7 @@ digest = "0.7"
 dns-lookup = "0.9"
 hex = "0.3"
 linked-hash-map = "0.5"
-log = { version = "0.4", features = ["max_level_trace", "release_max_level_warn"] }
+log = { version = "0.4", features = ["max_level_trace", "release_max_level_info"] }
 murmur3 = "0.4"
 num-bigint = "0.2"
 num-traits = "0.2"
